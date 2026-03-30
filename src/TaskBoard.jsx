@@ -1091,7 +1091,7 @@ function CreateWorkForm({ onCreated, currentUser }) {
       status: resultStatus,
     };
 
-    const res = await fetch(`${API_BASE}/tasks`, {
+    const res = await authFetch(`${API_BASE}/tasks`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -1112,7 +1112,7 @@ function CreateWorkForm({ onCreated, currentUser }) {
       }
     } catch {}
 
-    const listRes = await fetch(`${API_BASE}/tasks`);
+    const listRes = await authFetch(`${API_BASE}/tasks`);
     const listData = await listRes.json().catch(() => []);
     const tasks = Array.isArray(listData) ? listData : [];
 
@@ -2083,21 +2083,21 @@ export default function TaskBoard({ currentUser, onLogout, onSwitchAccount }) {
   const [overdueOnly, setOverdueOnly] = useState(false);
 
   const fetchWorks = useCallback(async () => {
-    const res = await fetch(`${API_BASE}/tasks`);
+    const res = await authFetch(`${API_BASE}/tasks`);
     const data = await res.json();
     const metaStore = loadTaskMeta();
     setAllWorks(mergeTasksWithMeta(Array.isArray(data) ? data : [], metaStore));
   }, []);
 
   const fetchWorkDetail = useCallback(async (workId) => {
-    const res = await fetch(`${API_BASE}/tasks/${workId}`);
+    const res = await authFetch(`${API_BASE}/tasks/${workId}`);
     if (!res.ok) return;
     const data = await res.json();
     setDetail(data);
   }, []);
 
   const fetchWorkHistory = useCallback(async (workId) => {
-    const res = await fetch(`${API_BASE}/tasks/${workId}/history`);
+    const res = await authFetch(`${API_BASE}/tasks/${workId}/history`);
     if (!res.ok) return;
     const data = await res.json();
     setHistory(Array.isArray(data) ? data : []);
@@ -2191,7 +2191,7 @@ export default function TaskBoard({ currentUser, onLogout, onSwitchAccount }) {
   };
 
   const handleMoveWork = async (workId, status) => {
-    const res = await fetch(`${API_BASE}/tasks/${workId}/status`, {
+    const res = await authFetch(`${API_BASE}/tasks/${workId}/status`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status }),
@@ -2219,7 +2219,7 @@ export default function TaskBoard({ currentUser, onLogout, onSwitchAccount }) {
   const handleDeleteWork = async (workId) => {
     if (!window.confirm("Bạn chắc chắn muốn xóa công việc này?")) return;
 
-    const res = await fetch(`${API_BASE}/tasks/${workId}`, { method: "DELETE" });
+    const res = await authFetch(`${API_BASE}/tasks/${workId}`, { method: "DELETE" });
 
     if (!res.ok) {
       alert("Xóa công việc thất bại");
@@ -2242,7 +2242,7 @@ export default function TaskBoard({ currentUser, onLogout, onSwitchAccount }) {
   };
 
   const handleSaveDetail = async (workId, form) => {
-    const res = await fetch(`${API_BASE}/tasks/${workId}`, {
+    const res = await authFetch(`${API_BASE}/tasks/${workId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
@@ -2268,7 +2268,7 @@ export default function TaskBoard({ currentUser, onLogout, onSwitchAccount }) {
       setAiLoading(true);
       setAiSuggestion(null);
 
-      const res = await fetch(`${API_BASE}/ai/suggest`, {
+      const res = await authFetch(`${API_BASE}/ai/suggest`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ task_id: selectedWork.id }),
