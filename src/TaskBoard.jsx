@@ -1,6 +1,20 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "http://127.0.0.1:8000";
+const TOKEN_KEY = "task_manager_access_token";
+const nativeFetch = window.fetch.bind(window);
+
+async function authFetch(input, init = {}) {
+  const token = localStorage.getItem(TOKEN_KEY);
+  const headers = new Headers(init.headers || {});
+  if (token) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+  return nativeFetch(input, {
+    ...init,
+    headers,
+  });
+}
 const TASK_META_KEY = "khth_task_meta_v3";
 
 const STATUS_OPTIONS = [
