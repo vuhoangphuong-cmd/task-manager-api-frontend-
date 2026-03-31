@@ -4,6 +4,20 @@ import TaskBoard from "./TaskBoard.jsx";
 const API_BASE = import.meta.env.VITE_API_BASE || "http://127.0.0.1:8000";
 const TOKEN_KEY = "task_manager_access_token";
 
+function getRoleLabel(role) {
+  if (role === "truong_phong") return "Trưởng phòng";
+  if (role === "pho_truong_phong") return "Phó trưởng phòng";
+  if (role === "chuyen_vien") return "Chuyên viên";
+  if (role === "manager") return "Trưởng phòng";
+  if (role === "staff") return "Chuyên viên";
+  return "Chuyên viên";
+}
+
+function getCompatRole(role) {
+  if (role === "truong_phong" || role === "pho_truong_phong") return "manager";
+  return "staff";
+}
+
 function AuthScreen({ onLogin, onRegister, loading }) {
   const [mode, setMode] = useState("login");
   const [fullName, setFullName] = useState("");
@@ -201,8 +215,11 @@ export default function App() {
     if (!user) return null;
     return {
       name: user.full_name || user.email,
+      full_name: user.full_name,
       email: user.email,
-      role: user.role,
+      rawRole: user.role,
+      role: getCompatRole(user.role),
+      roleLabel: getRoleLabel(user.role),
     };
   }, [user]);
 

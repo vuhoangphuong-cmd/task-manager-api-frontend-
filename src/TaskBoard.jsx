@@ -4,6 +4,23 @@ const API_BASE = import.meta.env.VITE_API_BASE || "http://127.0.0.1:8000";
 const TOKEN_KEY = "task_manager_access_token";
 const nativeFetch = window.fetch.bind(window);
 
+const ROLE_LABELS = {
+  truong_phong: "Trưởng phòng",
+  pho_truong_phong: "Phó trưởng phòng",
+  chuyen_vien: "Chuyên viên",
+  manager: "Trưởng phòng",
+  staff: "Chuyên viên",
+};
+
+function getRoleLabel(role) {
+  return ROLE_LABELS[role] || role || "Chuyên viên";
+}
+
+function isManagerRole(role) {
+  return role === "truong_phong" || role === "pho_truong_phong" || isManagerRole(role);
+}
+
+
 async function authFetch(input, init = {}) {
   const token = localStorage.getItem(TOKEN_KEY);
   const headers = new Headers(init.headers || {});
@@ -830,7 +847,7 @@ function Sidebar({ workItems, currentUser, onLogout, onSwitchAccount }) {
         <div style={{ ...styles.sideRow, borderBottom: "none" }}>
           <span>Vai trò</span>
           <span style={styles.sidePill}>
-            {currentUser.role === "manager" ? "Manager" : "Staff"}
+            {isManagerRole(currentUser?.role) ? "Manager" : "Staff"}
           </span>
         </div>
       </div>
@@ -918,7 +935,7 @@ function Topbar({ currentUser, onLogout, onSwitchAccount }) {
 
         <div style={styles.topBadge}>
           <span style={styles.liveDot} />
-          {currentUser.role === "manager" ? "Chế độ lãnh đạo" : "Chế độ nhân viên"}
+          {isManagerRole(currentUser?.role) ? "Chế độ lãnh đạo" : "Chế độ nhân viên"}
         </div>
       </div>
     </div>
@@ -1210,7 +1227,7 @@ function CreateWorkForm({ onCreated, currentUser }) {
           />
         </div>
 
-        {currentUser.role === "manager" && (
+        {isManagerRole(currentUser?.role) && (
           <div>
             <label style={styles.label}>Người thực hiện</label>
             <input
@@ -1305,7 +1322,7 @@ function FilterBar({
           </select>
         </div>
 
-        {currentUser.role === "manager" && (
+        {isManagerRole(currentUser?.role) && (
           <div>
             <label style={styles.label}>Người thực hiện</label>
             <input
@@ -1333,7 +1350,7 @@ function WorkCard({ workItem, onSelect, onMove, onDelete, currentUser }) {
   const overdue = isOverdue(workItem);
   const pStyle = priorityStyle(workItem.priority);
   const signal = getSignalFromText(workItem.description || "");
-  const isManager = currentUser.role === "manager";
+  const isManager = isManagerRole(currentUser?.role);
   const meta = workItem.meta || {};
 
   return (
@@ -1745,12 +1762,12 @@ function DetailPanel({
       <div
         style={{
           ...styles.roleBanner,
-          background: currentUser.role === "manager" ? "#eff6ff" : "#ecfdf5",
-          color: currentUser.role === "manager" ? "#1d4ed8" : "#047857",
-          border: currentUser.role === "manager" ? "1px solid #bfdbfe" : "1px solid #a7f3d0",
+          background: isManagerRole(currentUser?.role) ? "#eff6ff" : "#ecfdf5",
+          color: isManagerRole(currentUser?.role) ? "#1d4ed8" : "#047857",
+          border: isManagerRole(currentUser?.role) ? "1px solid #bfdbfe" : "1px solid #a7f3d0",
         }}
       >
-        {currentUser.role === "manager"
+        {isManagerRole(currentUser?.role)
           ? `Lãnh đạo phòng: ${currentUser.name} (${currentUser.email}) đang xem các công việc cần theo dõi và phê duyệt.`
           : `Nhân viên: ${currentUser.name} (${currentUser.email}) đang xem các công việc được giao cho mình.`}
       </div>
@@ -1938,7 +1955,7 @@ function DetailPanel({
         </div>
       )}
 
-      {currentUser.role === "manager" && (
+      {isManagerRole(currentUser?.role) && (
         <div style={styles.subCard}>
           <div style={{ ...styles.sectionHeader, marginBottom: 8 }}>
             <div style={styles.sectionTitleWrap}>
@@ -2125,7 +2142,7 @@ export default function TaskBoard({ currentUser, onLogout, onSwitchAccount }) {
   }, [fetchWorks, fetchWorkDetail, fetchWorkHistory, selectedWork]);
 
   const worksByRole = useMemo(() => {
-    if (currentUser.role === "manager") {
+    if (isManagerRole(currentUser?.role)) {
       return allWorks;
     }
 
