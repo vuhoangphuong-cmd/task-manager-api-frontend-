@@ -16,6 +16,28 @@ function getRoleLabel(role) {
   return ROLE_LABELS[role] || role || "Chuyên viên";
 }
 
+function getDisplayRole(currentUser) {
+  if (!currentUser) return "Chuyên viên";
+  return currentUser.roleLabel || getRoleLabel(currentUser.rawRole || currentUser.role);
+}
+
+function isManagerRole(role) {
+  return role === "truong_phong" || role === "pho_truong_phong" || isManagerRole(role);
+}
+
+
+const ROLE_LABELS = {
+  truong_phong: "Trưởng phòng",
+  pho_truong_phong: "Phó trưởng phòng",
+  chuyen_vien: "Chuyên viên",
+  manager: "Trưởng phòng",
+  staff: "Chuyên viên",
+};
+
+function getRoleLabel(role) {
+  return ROLE_LABELS[role] || role || "Chuyên viên";
+}
+
 function isManagerRole(role) {
   return role === "truong_phong" || role === "pho_truong_phong" || isManagerRole(role);
 }
