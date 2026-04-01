@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+const API_BASE = import.meta.env.VITE_API_BASE || "http://127.0.0.1:8000";
+const TOKEN_KEY = "task_manager_access_token";
+const nativeFetch = window.fetch.bind(window);
 
 const ROLE_LABELS = {
   truong_phong: "Trưởng phòng",
@@ -19,12 +22,26 @@ function getDisplayRole(currentUser) {
 }
 
 function isManagerRole(role) {
-  return role === "truong_phong" || role === "pho_truong_phong" || role === "manager";
+  return role === "truong_phong" || role === "pho_truong_phong" || isManagerRole(role);
 }
 
-const API_BASE = import.meta.env.VITE_API_BASE || "http://127.0.0.1:8000";
-const TOKEN_KEY = "task_manager_access_token";
-const nativeFetch = window.fetch.bind(window);
+
+const ROLE_LABELS = {
+  truong_phong: "Trưởng phòng",
+  pho_truong_phong: "Phó trưởng phòng",
+  chuyen_vien: "Chuyên viên",
+  manager: "Trưởng phòng",
+  staff: "Chuyên viên",
+};
+
+function getRoleLabel(role) {
+  return ROLE_LABELS[role] || role || "Chuyên viên";
+}
+
+function isManagerRole(role) {
+  return role === "truong_phong" || role === "pho_truong_phong" || isManagerRole(role);
+}
+
 
 async function authFetch(input, init = {}) {
   const token = localStorage.getItem(TOKEN_KEY);
@@ -1773,8 +1790,8 @@ function DetailPanel({
         }}
       >
         {isManagerRole(currentUser?.role)
-          ? `${getDisplayRole(currentUser)}: ${currentUser.name} (${currentUser.email}) đang xem các công việc cần theo dõi và phê duyệt.`
-          : `${getDisplayRole(currentUser)}: ${currentUser.name} (${currentUser.email}) đang xem các công việc được giao cho mình.`}
+          ? `Lãnh đạo phòng: ${currentUser.name} (${currentUser.email}) đang xem các công việc cần theo dõi và phê duyệt.`
+          : `Nhân viên: ${currentUser.name} (${currentUser.email}) đang xem các công việc được giao cho mình.`}
       </div>
 
       <div style={styles.sectionHeader}>
