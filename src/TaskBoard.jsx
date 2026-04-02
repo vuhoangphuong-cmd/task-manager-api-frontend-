@@ -68,7 +68,6 @@ function fileToAttachment(file) {
 function DetailModal({
   open,
   currentUser,
-  users,
   form,
   setForm,
   mode,
@@ -81,15 +80,11 @@ function DetailModal({
   if (!open) return null;
 
   const leadership = isLeadership(currentUser);
-  const canEditAssignment = leadership;
-  const canEditTitle = leadership;
-  const canEditPriority = leadership;
-  const canEditDueDate = leadership;
 
   const addLinkAttachment = () => {
-    const url = prompt("Nhập đường link tài liệu / ảnh / file:");
+    const url = prompt("Nhập đường link tài liệu / hình ảnh / minh chứng:");
     if (!url) return;
-    const name = prompt("Nhập tên hiển thị cho link đính kèm:", url) || url;
+    const name = prompt("Nhập tên hiển thị cho link:", url) || url;
     setForm({
       ...form,
       attachments: [
@@ -159,8 +154,8 @@ function DetailModal({
             </div>
             <div style={{ marginTop: 6, fontSize: 13, color: "#64748b", lineHeight: 1.7 }}>
               {leadership
-                ? "Lãnh đạo có thể giao việc, xem chi tiết, cập nhật và theo dõi báo cáo."
-                : "Chuyên viên có thể cập nhật mô tả báo cáo, đính kèm minh chứng và đổi trạng thái công việc của mình."}
+                ? "Lãnh đạo tạo / cập nhật công việc và theo dõi báo cáo của chuyên viên."
+                : "Chuyên viên cập nhật mô tả báo cáo, đính kèm minh chứng và đổi trạng thái công việc."}
             </div>
           </div>
 
@@ -176,8 +171,8 @@ function DetailModal({
               <input
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
-                disabled={!canEditTitle}
-                style={inputStyle(!canEditTitle)}
+                disabled={!leadership}
+                style={inputStyle(!leadership)}
               />
             </div>
 
@@ -187,7 +182,7 @@ function DetailModal({
                 rows={8}
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
-                placeholder="Chuyên viên có thể cập nhật báo cáo tiến độ, kết quả thực hiện, khó khăn và đề xuất tại đây."
+                placeholder="Chuyên viên cập nhật báo cáo thực hiện tại đây..."
                 style={{
                   ...inputStyle(false),
                   resize: "vertical",
@@ -198,6 +193,7 @@ function DetailModal({
 
             <div>
               <label style={labelStyle}>Đính kèm minh chứng</label>
+
               <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 10 }}>
                 <button type="button" onClick={addLinkAttachment} style={btnSecondary}>
                   + Thêm link
@@ -236,7 +232,9 @@ function DetailModal({
                     }}
                   >
                     <div style={{ minWidth: 0 }}>
-                      <div style={{ fontWeight: 700, color: "#0f172a", wordBreak: "break-all" }}>{item.name}</div>
+                      <div style={{ fontWeight: 700, color: "#0f172a", wordBreak: "break-all" }}>
+                        {item.name}
+                      </div>
                       <div style={{ fontSize: 12, color: "#64748b", wordBreak: "break-all" }}>
                         {item.kind === "link" ? "Link" : item.mime_type || "File"}
                       </div>
@@ -257,6 +255,7 @@ function DetailModal({
 
             <div>
               <label style={labelStyle}>AI gợi ý theo công việc này</label>
+
               <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
                 <button type="button" onClick={onAskAI} style={btnPrimary}>
                   Gợi ý AI
@@ -292,25 +291,13 @@ function DetailModal({
           <div style={{ display: "grid", gap: 14, alignContent: "start" }}>
             <div>
               <label style={labelStyle}>Người được giao</label>
-              {leadership ? (
-                <input
-                  value={form.assignee}
-                  onChange={(e) => setForm({ ...form, assignee: e.target.value })}
-                  list="task-user-list"
-                  placeholder="Nhập email hoặc họ tên người được giao"
-                  style={inputStyle(false)}
-                />
-              ) : (
-                <input value={form.assignee} disabled style={inputStyle(true)} />
-              )}
-
-              <datalist id="task-user-list">
-                {users.map((u) => (
-                  <option key={u.id} value={u.email}>
-                    {u.full_name} ({getRoleLabel(u.role)})
-                  </option>
-                ))}
-              </datalist>
+              <input
+                value={form.assignee}
+                onChange={(e) => setForm({ ...form, assignee: e.target.value })}
+                disabled={!leadership}
+                placeholder="Nhập email hoặc họ tên người được giao"
+                style={inputStyle(!leadership)}
+              />
             </div>
 
             <div>
@@ -318,8 +305,8 @@ function DetailModal({
               <select
                 value={form.priority}
                 onChange={(e) => setForm({ ...form, priority: e.target.value })}
-                disabled={!canEditPriority}
-                style={inputStyle(!canEditPriority)}
+                disabled={!leadership}
+                style={inputStyle(!leadership)}
               >
                 <option value="low">Thấp</option>
                 <option value="medium">Trung bình</option>
@@ -333,8 +320,8 @@ function DetailModal({
                 type="date"
                 value={form.due_date || ""}
                 onChange={(e) => setForm({ ...form, due_date: e.target.value })}
-                disabled={!canEditDueDate}
-                style={inputStyle(!canEditDueDate)}
+                disabled={!leadership}
+                style={inputStyle(!leadership)}
               />
             </div>
 
@@ -352,11 +339,11 @@ function DetailModal({
             </div>
 
             <div style={{ border: "1px solid #e2e8f0", borderRadius: 14, padding: 14, background: "#f8fafc" }}>
-              <div style={{ fontWeight: 800, marginBottom: 8 }}>Nguyên tắc cập nhật</div>
+              <div style={{ fontWeight: 800, marginBottom: 8 }}>Cách cập nhật</div>
               <div style={{ fontSize: 13, color: "#475569", lineHeight: 1.7 }}>
-                - Chuyên viên cập nhật mô tả để làm báo cáo.<br />
-                - Chuyên viên chọn đúng trạng thái hiện tại rồi bấm <b>Lưu</b>.<br />
-                - Sau khi lưu, công việc sẽ chuyển cột trạng thái tương ứng ở cả hai phía.
+                - Chuyên viên mở chi tiết để cập nhật mô tả báo cáo.<br />
+                - Chuyên viên chọn đúng trạng thái rồi bấm <b>Lưu</b>.<br />
+                - Sau khi lưu, công việc sẽ chuyển cột ở cả giao diện chuyên viên và lãnh đạo.
               </div>
             </div>
 
@@ -466,9 +453,7 @@ function Column({ title, items, onOpenDetail }) {
 
 export default function TaskBoard({ currentUser, onLogout }) {
   const [tasks, setTasks] = useState([]);
-  const [users, setUsers] = useState([]);
   const [loadingTasks, setLoadingTasks] = useState(false);
-  const [loadingUsers, setLoadingUsers] = useState(false);
 
   const [detailOpen, setDetailOpen] = useState(false);
   const [detailMode, setDetailMode] = useState("create");
@@ -495,29 +480,9 @@ export default function TaskBoard({ currentUser, onLogout }) {
     }
   }, []);
 
-  const loadUsers = useCallback(async () => {
-    if (!leadership) {
-      setUsers([]);
-      return;
-    }
-
-    try {
-      setLoadingUsers(true);
-      const res = await authFetch(`${API_BASE}/users`);
-      if (!res.ok) throw new Error("Không tải được danh sách nhân sự");
-      const data = await res.json();
-      setUsers(data);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoadingUsers(false);
-    }
-  }, [leadership]);
-
   useEffect(() => {
     loadTasks();
-    loadUsers();
-  }, [loadTasks, loadUsers]);
+  }, [loadTasks]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -706,8 +671,8 @@ export default function TaskBoard({ currentUser, onLogout }) {
             }}
           >
             {leadership
-              ? `${getDisplayRole(currentUser)}: xem toàn bộ công việc, giao việc cho nhân sự và theo dõi báo cáo tiến độ.`
-              : `${getDisplayRole(currentUser)}: chỉ xem các công việc được giao cho mình, cập nhật mô tả báo cáo, đính kèm minh chứng và đổi trạng thái.`}
+              ? `${getDisplayRole(currentUser)}: giao việc, theo dõi tiến độ và xem toàn bộ báo cáo của phòng.`
+              : `${getDisplayRole(currentUser)}: xem công việc của mình, cập nhật báo cáo, đính kèm minh chứng và đổi trạng thái công việc.`}
           </div>
 
           <div style={{ marginTop: "auto", display: "grid", gap: 10 }}>
@@ -726,11 +691,6 @@ export default function TaskBoard({ currentUser, onLogout }) {
               <div style={{ fontSize: 28, fontWeight: 900 }}>Bảng công việc</div>
               <div style={{ color: "#64748b", fontSize: 14, marginTop: 4 }}>
                 {loadingTasks ? "Đang tải dữ liệu..." : `Tổng số công việc hiển thị: ${tasks.length}`}
-                {leadership && (
-                  <span style={{ marginLeft: 12 }}>
-                    {loadingUsers ? " | Đang tải nhân sự..." : ` | Số nhân sự: ${users.length}`}
-                  </span>
-                )}
               </div>
             </div>
 
@@ -750,7 +710,6 @@ export default function TaskBoard({ currentUser, onLogout }) {
       <DetailModal
         open={detailOpen}
         currentUser={currentUser}
-        users={users}
         form={form}
         setForm={setForm}
         mode={detailMode}
