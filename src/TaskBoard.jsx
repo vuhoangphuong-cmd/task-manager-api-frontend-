@@ -1090,7 +1090,28 @@ function CreateWorkForm({ onCreated, currentUser }) {
   const [resultStatus, setResultStatus] = useState("todo");
   const [priority, setPriority] = useState("medium");
 
-  useEffect(() => {
+  
+useEffect(() => {
+  if (!isManagerRole(currentUser?.rawRole || currentUser?.role)) return;
+
+  const loadUsers = async () => {
+    try {
+      setLoadingUsers(true);
+      const res = await authFetch(`${API_BASE}/users`);
+      if (!res.ok) throw new Error("Load users failed");
+      const data = await res.json();
+      setUsers(data);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
+  loadUsers();
+}, [currentUser]);
+
+useEffect(() => {
     if (currentUser.roleLabel === "staff") {
       setAssignee(currentUser.name);
     }
