@@ -166,6 +166,15 @@ function getSignalFromText(text = "") {
   return "";
 }
 
+
+function getEffectiveSignal(rawSignal, meta = {}, workItem = null) {
+  if (meta?.review_decision === "dong_y_phe_duyet") return "da_hoan_thanh";
+  if (meta?.review_decision === "tra_lai") return "";
+  if (meta?.result_status === "done") return "da_hoan_thanh";
+  if (workItem?.status === "done" && rawSignal === "de_nghi_phe_duyet") return "da_hoan_thanh";
+  return rawSignal;
+}
+
 function stripSignalTags(text = "") {
   return text
     .replace(/\[de_nghi_phe_duyet\]/gi, "")
@@ -1421,7 +1430,8 @@ function WorkCard({ workItem, onSelect, onMove, onDelete, currentUser }) {
   const statusMeta = getStatusMeta(workItem.status);
   const overdue = isOverdue(workItem);
   const pStyle = priorityStyle(workItem.priority);
-  const signal = getSignalFromText(workItem.description || "");
+  const rawSignal = getSignalFromText(workItem.description || "");
+  const signal = getEffectiveSignal(rawSignal, meta, workItem);
   const isManager = isManagerRole(currentUser?.role);
   const meta = workItem.meta || {};
 
@@ -1555,17 +1565,19 @@ function WorkCard({ workItem, onSelect, onMove, onDelete, currentUser }) {
         </div>
 
         <div style={styles.workActions}>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onMove(workItem.id, "todo");
-            }}
-            style={styles.btnSecondary}
-          >
-            Chưa làm
-          </button>
+          {signal !== "da_hoan_thanh" && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onMove(workItem.id, "todo");
+              }}
+              style={styles.btnSecondary}
+            >
+              Chưa làm
+            </button>
+          )}
 
-          {!isManager && workItem.status !== "in_progress" && (
+          {!isManager && signal !== "da_hoan_thanh" && workItem.status !== "in_progress" && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -1594,7 +1606,17 @@ function WorkCard({ workItem, onSelect, onMove, onDelete, currentUser }) {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  alert("Đã chuyển sang chờ phê duyệt");
+                  const metaStore = loadTaskMeta();
+                const nextMeta = {
+                  ...(metaStore[String(workItem.id)] || {}),
+                  ...(meta || {}),
+                  review_decision: "dong_y_phe_duyet",
+                  result_status: "done",
+                };
+                metaStore[String(workItem.id)] = nextMeta;
+                saveTaskMeta(metaStore);
+                onMove(workItem.id, "done");
+                alert("Đã đồng ý phê duyệt");
                 }}
                 style={styles.btnSecondary}
               >
@@ -1604,7 +1626,17 @@ function WorkCard({ workItem, onSelect, onMove, onDelete, currentUser }) {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  alert("Đã từ chối");
+                  const metaStore = loadTaskMeta();
+                const nextMeta = {
+                  ...(metaStore[String(workItem.id)] || {}),
+                  ...(meta || {}),
+                  review_decision: "tra_lai",
+                  result_status: "in_progress",
+                };
+                metaStore[String(workItem.id)] = nextMeta;
+                saveTaskMeta(metaStore);
+                onMove(workItem.id, "in_progress");
+                alert("Đã trả lại");
                 }}
                 style={styles.btnSecondary}
               >
