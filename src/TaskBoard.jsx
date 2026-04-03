@@ -1,3 +1,28 @@
+
+
+function fileToAttachment(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      resolve({
+        kind: "file",
+        name: file.name,
+        url: reader.result,
+        mime_type: file.type || "",
+        size: file.size || 0,
+      });
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function formatAttachmentSize(size) {
+  if (!size || size <= 0) return "";
+  if (size < 1024) return `${size} B`;
+  if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
+  return `${(size / (1024 * 1024)).toFixed(2)} MB`;
+}
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 
@@ -1747,7 +1772,59 @@ function DetailPanel({
     return <div style={styles.detailPanel}>Đang tải chi tiết...</div>;
   }
 
-  const handleSave = async () => {
+  
+const addLinkAttachment = () => {
+  const url = prompt("Nhập link:");
+  if (!url) return;
+  const name = prompt("Tên hiển thị:", url) || url;
+  setForm({
+    ...form,
+    attachments: [...(form.attachments || []), { kind: "link", name, url }]
+  });
+};
+
+const handleFileUpload = async (e) => {
+  const files = Array.from(e.target.files || []);
+  const items = await Promise.all(files.map(fileToAttachment));
+  setForm({
+    ...form,
+    attachments: [...(form.attachments || []), ...items]
+  });
+};
+
+const removeAttachment = (i) => {
+  const arr = [...(form.attachments || [])];
+  arr.splice(i, 1);
+  setForm({ ...form, attachments: arr });
+};
+
+
+
+{/* ===== ATTACHMENTS ===== */}
+<div style={{ marginTop: 16 }}>
+  <div style={{ fontWeight: 700, marginBottom: 8 }}>
+    Đính kèm minh chứng
+  </div>
+
+  <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+    <button onClick={addLinkAttachment}>+ Link</button>
+    <input type="file" multiple onChange={handleFileUpload} />
+  </div>
+
+  <div>
+    {(form.attachments || []).map((a, i) => (
+      <div key={i} style={{ display: "flex", gap: 10 }}>
+        <span>{a.name}</span>
+        <a href={a.url} target="_blank">Mở</a>
+        <button onClick={() => removeAttachment(i)}>Xóa</button>
+      </div>
+    ))}
+  </div>
+</div>
+
+
+const handleSave = async () => {
+
     const payload = { ...form };
     const metaStore = loadTaskMeta();
     const nextMeta = {
