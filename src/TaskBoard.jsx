@@ -201,6 +201,27 @@ function mergeTasksWithMeta(tasks, metaStore) {
   }));
 }
 
+
+function isStaffUser(currentUser) {
+  return (
+    currentUser?.role === "staff" ||
+    currentUser?.roleLabel === "staff" ||
+    currentUser?.role === "chuyen_vien" ||
+    currentUser?.roleLabel === "chuyen_vien"
+  );
+}
+
+function isManagerUser(currentUser) {
+  return (
+    currentUser?.role === "manager" ||
+    currentUser?.roleLabel === "manager" ||
+    currentUser?.role === "truong_phong" ||
+    currentUser?.role === "pho_truong_phong" ||
+    currentUser?.roleLabel === "truong_phong" ||
+    currentUser?.roleLabel === "pho_truong_phong"
+  );
+}
+
 function readFilesAsDataUrls(files) {
   return Promise.all(
     files.map(
@@ -1109,7 +1130,7 @@ function CreateWorkForm({ onCreated, currentUser }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [assigner, setAssigner] = useState("");
-  const [assignee, setAssignee] = useState(currentUser.roleLabel === "staff" ? currentUser.name : "");
+  const [assignee, setAssignee] = useState(isStaffUser(currentUser) ? currentUser.name : "");
   const [startDate, setStartDate] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [resultStatus, setResultStatus] = useState("todo");
@@ -1137,7 +1158,7 @@ useEffect(() => {
 }, [currentUser]);
 
 useEffect(() => {
-    if (currentUser.roleLabel === "staff") {
+    if (isStaffUser(currentUser)) {
       setAssignee(currentUser.name);
     }
   }, [currentUser]);
@@ -1153,7 +1174,7 @@ useEffect(() => {
     const payload = {
       title: title.trim(),
       description: description.trim(),
-      assignee: (currentUser.roleLabel === "staff" ? currentUser.name : assignee.trim()) || "",
+      assignee: (isStaffUser(currentUser) ? currentUser.name : assignee.trim()) || "",
       priority,
       due_date: dueDate || null,
       status: resultStatus,
@@ -1241,7 +1262,7 @@ useEffect(() => {
         style={{
           display: "grid",
           gridTemplateColumns:
-            currentUser.roleLabel === "staff"
+            isStaffUser(currentUser)
               ? "1.5fr 1.5fr 1fr 1fr 1fr 1fr auto"
               : "1.2fr 1.2fr 1fr 1fr 1fr 1fr 1fr auto",
           gap: 12,
@@ -1346,7 +1367,7 @@ function FilterBar({
         style={{
           display: "grid",
           gridTemplateColumns:
-            currentUser.roleLabel === "staff" ? "2fr 1fr auto" : "2fr 1fr 1fr auto",
+            isStaffUser(currentUser) ? "2fr 1fr auto" : "2fr 1fr 1fr auto",
           gap: 12,
           alignItems: "end",
         }}
@@ -1834,7 +1855,7 @@ const handleSave = async () => {
 
     nextMeta.raw_description = form.description;
 
-    if (currentUser.roleLabel === "staff") {
+    if (isStaffUser(currentUser)) {
       payload.description = buildDescriptionWithSignal(form.description, reportText, reportAction);
 
       if (reportAction === "de_nghi_phe_duyet") {
@@ -1990,7 +2011,7 @@ const handleSave = async () => {
       <div style={styles.subCard}>
         <div style={{ fontSize: 13, fontWeight: 850, marginBottom: 8 }}>File đính kèm</div>
 
-        {currentUser.roleLabel === "staff" && (
+        {isStaffUser(currentUser) && (
           <div style={{ marginBottom: 10 }}>
             <input
               type="file"
@@ -2004,7 +2025,7 @@ const handleSave = async () => {
           </div>
         )}
 
-        {attachmentFiles.length > 0 && currentUser.roleLabel === "staff" && (
+        {attachmentFiles.length > 0 && isStaffUser(currentUser) && (
           <div style={{ marginBottom: 10 }}>
             {attachmentFiles.map((file, index) => (
               <div key={`${file.name}-${index}`} style={{ ...styles.attachmentItem, color: "#334155", cursor: "default" }}>
@@ -2017,7 +2038,7 @@ const handleSave = async () => {
         <AttachmentLinks attachments={currentMeta.attachments || []} />
       </div>
 
-      {currentUser.roleLabel === "staff" && (
+      {isStaffUser(currentUser) && (
         <div style={styles.subCard}>
           <div style={{ ...styles.sectionHeader, marginBottom: 8 }}>
             <div style={styles.sectionTitleWrap}>
@@ -2284,7 +2305,7 @@ export default function TaskBoard({ currentUser, onLogout, onSwitchAccount }) {
       const matchesStatus = statusFilter === "all" || workItem.status === statusFilter;
 
       const matchesAssignee =
-        currentUser.roleLabel === "staff"
+        isStaffUser(currentUser)
           ? true
           : !assigneeFilter.trim() ||
             (workItem.assignee || "").toLowerCase().includes(assigneeFilter.trim().toLowerCase());
