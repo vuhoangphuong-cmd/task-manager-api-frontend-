@@ -1598,7 +1598,7 @@ function WorkCard({ workItem, onSelect, onMove, onDelete, currentUser }) {
                 }}
                 style={styles.btnSecondary}
               >
-                Chờ phê duyệt
+                Đồng ý phê duyệt
               </button>
 
               <button
@@ -1608,7 +1608,7 @@ function WorkCard({ workItem, onSelect, onMove, onDelete, currentUser }) {
                 }}
                 style={styles.btnSecondary}
               >
-                Từ chối
+                Trả lại
               </button>
             </>
           )}
