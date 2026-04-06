@@ -1421,7 +1421,12 @@ function WorkCard({ workItem, onSelect, onMove, onDelete, currentUser }) {
   const statusMeta = getStatusMeta(workItem.status);
   const overdue = isOverdue(workItem);
   const pStyle = priorityStyle(workItem.priority);
-  const signal = getSignalFromText(workItem.description || "");
+  const signal = (() => {
+    const raw = getSignalFromText(workItem.description || "");
+    if (meta?.review_action === "approved") return "da_hoan_thanh";
+    if (meta?.review_action === "returned") return "";
+    return raw;
+  })();
   const isManager = isManagerRole(currentUser?.role);
   const meta = workItem.meta || {};
 
@@ -1594,7 +1599,18 @@ function WorkCard({ workItem, onSelect, onMove, onDelete, currentUser }) {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  alert("Đã chuyển sang chờ phê duyệt");
+                  {
+                const metaStore = loadTaskMeta();
+                const nextMeta = {
+                  ...(metaStore[String(workItem.id)] || {}),
+                  result_status: "done",
+                  review_action: "approved",
+                };
+                metaStore[String(workItem.id)] = nextMeta;
+                saveTaskMeta(metaStore);
+                onMove(workItem.id, "done");
+                alert("Đã đồng ý phê duyệt");
+              }
                 }}
                 style={styles.btnSecondary}
               >
@@ -1604,7 +1620,18 @@ function WorkCard({ workItem, onSelect, onMove, onDelete, currentUser }) {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  alert("Đã từ chối");
+                  {
+                const metaStore = loadTaskMeta();
+                const nextMeta = {
+                  ...(metaStore[String(workItem.id)] || {}),
+                  result_status: "in_progress",
+                  review_action: "returned",
+                };
+                metaStore[String(workItem.id)] = nextMeta;
+                saveTaskMeta(metaStore);
+                onMove(workItem.id, "in_progress");
+                alert("Đã trả lại");
+              }
                 }}
                 style={styles.btnSecondary}
               >
