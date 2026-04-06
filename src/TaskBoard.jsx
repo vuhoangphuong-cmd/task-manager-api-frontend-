@@ -1421,7 +1421,12 @@ function WorkCard({ workItem, onSelect, onMove, onDelete, currentUser }) {
   const statusMeta = getStatusMeta(workItem.status);
   const overdue = isOverdue(workItem);
   const pStyle = priorityStyle(workItem.priority);
-  const signal = getSignalFromText(workItem.description || "");
+  const signal = (() => {
+          if (currentMeta?.result_status === "da_hoan_thanh") return "da_hoan_thanh";
+          if (currentMeta?.result_status === "de_nghi_phe_duyet") return "de_nghi_phe_duyet";
+          if (currentMeta?.result_status === "xin_gia_han") return "xin_gia_han";
+          return getSignalFromText(workItem.description || "");
+        })();
   const isManager = isManagerRole(currentUser?.role);
   const meta = workItem.meta || {};
 
