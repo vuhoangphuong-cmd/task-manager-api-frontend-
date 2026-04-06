@@ -1555,17 +1555,19 @@ function WorkCard({ workItem, onSelect, onMove, onDelete, currentUser }) {
         </div>
 
         <div style={styles.workActions}>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onMove(workItem.id, "todo");
-            }}
-            style={styles.btnSecondary}
-          >
-            Chưa làm
-          </button>
+          {signal !== "da_hoan_thanh" && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onMove(workItem.id, "todo");
+              }}
+              style={styles.btnSecondary}
+            >
+              Chưa làm
+            </button>
+          )}
 
-          {!isManager && workItem.status !== "in_progress" && (
+          {!isManager && signal !== "da_hoan_thanh" && workItem.status !== "in_progress" && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -1594,7 +1596,14 @@ function WorkCard({ workItem, onSelect, onMove, onDelete, currentUser }) {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  alert("Đã chuyển sang chờ phê duyệt");
+                  const metaStore = loadTaskMeta();
+                  metaStore[String(workItem.id)] = {
+                    ...(metaStore[String(workItem.id)] || {}),
+                    result_status: "da_hoan_thanh",
+                  };
+                  saveTaskMeta(metaStore);
+                  onMove(workItem.id, "done");
+                  alert("Đã đồng ý phê duyệt");
                 }}
                 style={styles.btnSecondary}
               >
@@ -1604,7 +1613,14 @@ function WorkCard({ workItem, onSelect, onMove, onDelete, currentUser }) {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  alert("Đã từ chối");
+                  const metaStore = loadTaskMeta();
+                  metaStore[String(workItem.id)] = {
+                    ...(metaStore[String(workItem.id)] || {}),
+                    result_status: "xin_gia_han",
+                  };
+                  saveTaskMeta(metaStore);
+                  onMove(workItem.id, "in_progress");
+                  alert("Đã trả lại");
                 }}
                 style={styles.btnSecondary}
               >
